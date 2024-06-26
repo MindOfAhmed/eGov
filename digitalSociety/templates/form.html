@@ -1,0 +1,50 @@
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
+    <title>Passport Renewal</title>
+</head>
+<body>
+    <h1>Fill the form and ensure your information is accurate</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+            {% bootstrap_field field %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Next</button>
+    </form>
+    {% if form.errors %}
+        <ul>
+            {% for field, errors in form.errors.items %}
+                <li>{{ field }}: {{ errors|striptags }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <script>
+        // DOMContentLoaded ensures the document is fully loaded before running the script
+        document.addEventListener('DOMContentLoaded', (event) => { 
+            const issueDateElement = document.getElementById('id_issue_date');
+            if(issueDateElement) {
+                issueDateElement.addEventListener('change', (event)=>{
+                    const issueDate = new Date(event.target.value); // this will be the value picked by the user
+                    let threeYearsAgo = new Date();
+                    // set the date to three years ago
+                    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+                    // if the last rewawal date is within the last 3 years, show the renewal reason field
+                    if (issueDate > threeYearsAgo) {
+                        document.getElementById('id_renewal_reason').style.display = 'block';
+                        document.getElementById('id_proof_document').style.display = 'block';
+                    } else {
+                        document.getElementById('id_renewal_reason').style.display = 'none';
+                        document.getElementById('id_proof_document').style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
