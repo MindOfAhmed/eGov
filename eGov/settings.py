@@ -32,7 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'bootstrap4',
+    "bootstrap4",
+    "rest_framework",
     "digitalSociety.apps.DigitalsocietyConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -108,11 +109,15 @@ USE_I18N = True
 
 USE_TZ = True
 
+# THE ROOT_DIR is the directory that includes both the frontend and eGov backend
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(ROOT_DIR, 'frontend/build'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

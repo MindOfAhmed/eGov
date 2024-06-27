@@ -30,7 +30,7 @@ local_settings.py
 db.sqlite3
 media
 
-# static files
+# Static files
 staticfiles/
 
 # Backup files
@@ -49,3 +49,34 @@ staticfiles/
 venv/
 env/
 .venv/
+
+# Node modules
+node_modules/
+
+# React build output
+build/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# dotenv environment variables file
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

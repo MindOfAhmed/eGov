@@ -100,14 +100,19 @@ def passport_info_validation(request):
                 is_valid, message = validate_uploaded_photo(picture)
                 if is_valid:
                     '''TODO: SEND USER NOTIFICATION LATER'''
-                    # save the renewal request
+                    # save the renewal request if the user does not have a pending request
                     renewal_request = form.save(commit=False)
                     renewal_request.citizen = passport.citizen
-                    renewal_request.save() 
-                    return render(request, 'index.html')
+                    # check if the user already has a request pending
+                    try:
+                        RenewalRequests.objects.get(citizen=renewal_request.citizen)
+                        # the instance exists, add an error to the form
+                        form.add_error(None, 'You already have a pending request.')
+                    except RenewalRequests.DoesNotExist:
+                        renewal_request.save()   
+                        return render(request, 'request_success.html')
                 else:
-                    form.add_error(None, message)
-                
+                    form.add_error(None, message) 
             except Passports.DoesNotExist:
                 form.add_error(None, 'The data you entered does not match our records.')
     else:
