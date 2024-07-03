@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "bootstrap4",
     "rest_framework",
+    "rest_framework_simplejwt",
     "digitalSociety.apps.DigitalsocietyConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -54,6 +55,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "eGov.urls"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 TEMPLATES = [
     {

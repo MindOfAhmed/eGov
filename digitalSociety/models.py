@@ -1,11 +1,15 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Citizens(models.Model):
+    # map the citizen to the User model provided by Django
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     national_id = models.CharField(max_length=30, primary_key=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     date_of_birth = models.DateField()
     nationality = models.CharField(max_length=30)
+    picture = models.ImageField(upload_to=f'profile_pictures/{national_id}', default='default.png')
     SEX_CHOICES = [  # each one is written twice because the first one is the value and the second is what will appear in the dropdown menu
         ('M', 'Male'),
         ('F', 'Female'),
@@ -25,7 +29,7 @@ class Citizens(models.Model):
     blood_type = models.CharField(max_length=3, choices=BLOOD_TYPES)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name + ' (' + self.national_id + ')'
+        return self.user.username
 
 class Addresses(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
