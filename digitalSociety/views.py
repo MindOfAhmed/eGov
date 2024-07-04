@@ -1,8 +1,25 @@
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .serializers import UserSerializer
 from .forms import *
 from .models import *
 from .services import *
+
+''' this function will be used to send the user data to the frontend'''
+@api_view(['GET']) # only allow GET requests
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+def user_data(request):
+    user = request.user
+    # user_data = {
+    #     "username": user.username,
+    #     "picture": user.citizens.picture.url if hasattr(user, 'citizens') else None
+    # }
+    serializer = UserSerializer(user)
+    # return the user data in JSON format
+    return Response(serializer.data)
 
 def index(request):
     return render(request, "index.html")

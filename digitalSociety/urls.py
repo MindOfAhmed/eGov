@@ -12,6 +12,7 @@ urlpatterns = [
     path("passport_info_validation/", views.passport_info_validation, name="passport_info_validation"),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/user/', views.user_data, name='user_data'),
 ]
 ''' 
     When a POST request is made to /token/ with valid user credentials (username and password),

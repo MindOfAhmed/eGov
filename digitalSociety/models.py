@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+def profile_picture_path(instance, filename):
+    return f'profile_pictures/{instance.national_id}/{filename}'
+
 class Citizens(models.Model):
     # map the citizen to the User model provided by Django
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -9,7 +12,7 @@ class Citizens(models.Model):
     last_name = models.CharField(max_length=30)
     date_of_birth = models.DateField()
     nationality = models.CharField(max_length=30)
-    picture = models.ImageField(upload_to=f'profile_pictures/{national_id}', default='default.png')
+    picture = models.ImageField(upload_to=profile_picture_path, default='default.png')
     SEX_CHOICES = [  # each one is written twice because the first one is the value and the second is what will appear in the dropdown menu
         ('M', 'Male'),
         ('F', 'Female'),
