@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("api/citizen_info_validation", views.citizen_info_validation, name="citizen_info_validation"),
+    path("api/citizen_info_validation/", views.citizen_info_validation, name="citizen_info_validation"),
     path("api/address_info_validation/", views.address_info_validation, name="address_info_validation"),
     path("api/passport_info_validation/", views.passport_info_validation, name="passport_info_validation"),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

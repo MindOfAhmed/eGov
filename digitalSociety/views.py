@@ -40,20 +40,23 @@ def address_info_validation(request):
     if serializer.is_valid(): 
         # retrieve the data from the serializer
         data = serializer.validated_data
+        print(data)
         # check if the address exists and belongs to the logged in user
-        address = Addresses.objects.get(
-            country=data['country'],
-            city=data['city'],
-            street=data['street'],
-            building_number=data['building_number'],
-            floor_number=data['floor_number'],
-            apartment_number=data['apartment_number'],
-            citizen = request.user.citizen
-        )
-        if address: 
-            return Response({"message": "The data you entered matches our records."}, status=status.HTTP_200_OK)
-        else:
+        try:
+            address = Addresses.objects.get(
+                country=data['country'],
+                city=data['city'],
+                street=data['street'],
+                building_number=data['building_number'],
+                floor_number=data['floor_number'],
+                apartment_number=data['apartment_number'],
+                citizen = request.user.citizen
+            )
+            if address:
+                return Response({"message": "The data you entered matches our records."}, status=status.HTTP_200_OK)
+        except Addresses.DoesNotExist:
             return Response({"message": "The data you entered does not match our records."}, status=status.HTTP_400_BAD_REQUEST)
+            
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 '''This function will be used to validate the passport information from the form and to create a new renewal request'''
@@ -62,9 +65,12 @@ def address_info_validation(request):
 def passport_info_validation(request):
     # create a serializer instance and pass the data from the request
     serializer = PassportValidationSerializer(data=request.data)
+    # print("serializer: ", serializer)
+    print("before validation")
     if serializer.is_valid():
         # retrieve the data from the serializer
         data = serializer.validated_data
+        print("data: ", data)
         # check if the passport exists and belongs to the logged in user
         try:
             passport = Passports.objects.get(
