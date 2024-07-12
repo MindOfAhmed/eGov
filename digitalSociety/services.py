@@ -78,28 +78,30 @@ def validate_uploaded_photo(picture):
     if head_pose['Roll'] > 10 or head_pose['Roll'] < -10:
         return False, "Head is tilted in the image."
 
-    '''check if the background of the image is white'''
+    '''check if the background of the image is white by checking the top corners and the midpoints of the left and right sides of the image'''
     # convert the image to numpy array for efficient processing 
     img_array = np.array(img) 
     # define the number of pixels to consider from each corner
-    corner_margin = 50  
+    test_margin = 50  
+    # define the threshold that the pixels must be above to pass
+    white_threshold = 180
+    # get the midpoint of the image
+    midpoint_vertical = img_height // 2
+    # get the start and end of the vertical slice
+    midpoint_vertical_start = midpoint_vertical - test_margin // 2
+    midpoint_vertical_end = midpoint_vertical + test_margin // 2
 
-    # define corner areas (top-left, top-right, bottom-left, bottom-right)
-    corners = [
-        (range(corner_margin), range(corner_margin)),  # top-left
-        (range(img_width - corner_margin, img_width), range(corner_margin)),  # top-right
-        (range(corner_margin), range(img_height - corner_margin, img_height)),  # bottom-left
-        (range(img_width - corner_margin, img_width), range(img_height - corner_margin, img_height))  # bottom-right
-    ]
+    # define slices for the test points
+    top_left = img_array[:test_margin, :test_margin]
+    top_right = img_array[:test_margin, -test_margin:]
+    left_midpoint = img_array[midpoint_vertical_start:midpoint_vertical_end, :test_margin]
+    right_midpoint = img_array[midpoint_vertical_start:midpoint_vertical_end, -test_margin:]
 
-    # check each corner
-    for x_range, y_range in corners:
-        for x in x_range:
-            for y in y_range:
-                r, g, b = img_array[y, x][:3]  # get the pixel color, ignoring alpha channel
-                # check if the pixel is not (almost) white
-                if not (r > 180 and g > 180 and b > 180):
-                    return False, "The background of the image is not white in the corners."
+    # check if all pixels in each corner are white or nearly white
+    corners = [top_left, top_right, left_midpoint, right_midpoint]
+    for corner in corners:
+        if np.any(corner < white_threshold): 
+            return False, "The background of the image is not white."
 
     '''check the image quality - resolution '''
     if img_width < 600 or img_height < 600:

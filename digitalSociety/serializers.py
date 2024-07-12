@@ -76,5 +76,12 @@ class PassportValidationSerializer(serializers.Serializer):
     expiry_date = serializers.CharField(max_length=10)
     # the following fields will be used for the renewal request
     picture = serializers.ImageField()
-    reason = serializers.CharField(required=False)
+    reason = serializers.CharField(required=False, allow_blank=True)
     proof_document = serializers.FileField(required=False)
+
+    def validate(self, data):
+        # set default values for 'reason' and 'proof_document' if they are not provided or are empty
+        data['reason'] = data.get('reason', None) if data.get('reason', '') != '' else None
+        data['proof_document'] = data.get('proof_document', None) if data.get('proof_document', '') != '' else None
+        return data
+    # copilot ^_^
