@@ -85,3 +85,33 @@ class PassportValidationSerializer(serializers.Serializer):
         data['proof_document'] = data.get('proof_document', None) if data.get('proof_document', '') != '' else None
         return data
     # copilot ^_^
+
+class DrivingLicenseSerializer(serializers.Serializer):
+    # the following fields will be used for validation
+    license_number = serializers.CharField(max_length=30)
+    issue_date = serializers.CharField(max_length=10)
+    expiry_date = serializers.CharField(max_length=10)
+    nationality = serializers.CharField(max_length=30)
+    CLASS_TYPES = [('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
+    license_class = serializers.ChoiceField(choices=CLASS_TYPES)
+    # the following fields will be used for the renewal request
+    picture = serializers.ImageField()
+    emergency_contact = serializers.CharField(max_length=30)
+    reason = serializers.CharField(required=False, allow_blank=True)
+    proof_document = serializers.FileField(required=False)
+
+    def validate(self, data):
+        # set default values for 'reason' and 'proof_document' if they are not provided or are empty
+        data['reason'] = data.get('reason', None) if data.get('reason', '') != '' else None
+        data['proof_document'] = data.get('proof_document', None) if data.get('proof_document', '') != '' else None
+        return data
+    
+'''This serializer will be used to collect the address to be registered in the api view from the form'''
+class AddressRegistrationSerializer(serializers.Serializer):
+    country = serializers.CharField(max_length=30)
+    city = serializers.CharField(max_length=30)
+    street = serializers.CharField(max_length=30)
+    building_number = serializers.IntegerField()
+    floor_number = serializers.IntegerField()
+    apartment_number = serializers.IntegerField()
+    proof_document = serializers.FileField()
