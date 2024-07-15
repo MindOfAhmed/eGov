@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
-from .forms import *
 from .models import *
 from .services import *
 
@@ -89,7 +88,7 @@ def passport_info_validation(request):
             is_valid, message = validate_uploaded_photo(data['picture'])
             if is_valid:
                 # check if the user already has a request pending
-                if not RenewalRequests.objects.filter(citizen=passport.citizen, request_type="Passport").exists(): # copilot helped correct this 
+                if not RenewalRequests.objects.filter(citizen=passport.citizen, request_type="Passport", status="Pending").exists(): # copilot helped correct this 
                 # create a new renewal request
                     if not data['reason'] and not data['proof_document']:
                         renewal_request = RenewalRequests(
@@ -150,7 +149,7 @@ def license_info_validation(request):
             is_valid, message = validate_uploaded_photo(data['picture'])
             if is_valid:
                 # check if the user already has a request pending
-                if not RenewalRequests.objects.filter(citizen=driversLicense.citizen, request_type="Driver's License").exists():
+                if not RenewalRequests.objects.filter(citizen=driversLicense.citizen, request_type="Driver's License", status="Pending").exists():
                     # create a new renewal request
                     if not data['reason'] and not data['proof_document']:
                         renewal_request = RenewalRequests(
@@ -186,11 +185,11 @@ def register_address(request):
     if serializer.is_valid():
         # retrieve the data from the serializer
         data = serializer.validated_data
-        # ensure that the user doesn't already have a pending address request
-        if not RenewalRequests.objects.filter(citizen=request.user.citizen, request_type='Address Registration', status='Pending').exists():
+        # ensure that the user doesn't already have a pending address registration request
+        if not RegistrationRequests.objects.filter(citizen=request.user.citizen, request_type='Address Registration', status='Pending').exists():
             try:
                 # create a new request
-                address_request = RenewalRequests(
+                address_request = RegistrationRequests(
                     citizen = request.user.citizen,
                     request_type = 'Address Registration',
                     proof_document = data['proof_document']
@@ -208,6 +207,45 @@ def register_address(request):
                     state = 'Pending Request'
                 )
                 address.save()
+            except Exception as e:
+                return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "The proccess is successful and the request is pending."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "You already have a pending request."}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+def register_property(request):
+    # create a new serializer instance and pass the data from the request
+    serializer = PropertyRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        # retrieve the data from the serializer
+        data = serializer.validated_data
+        # ensure that the user doesn't already have a pending property registration request
+        if not RegistrationRequests.objects.filter(citizen=request.user.citizen, request_type='Property Registration', status='Pending').exists():
+            try:
+                # create a new request
+                property_request = RegistrationRequests(
+                    citizen = request.user.citizen,
+                    request_type = 'Property Registration',
+                    proof_document = data['proof_document'],
+                    previous_owner_id = data['previous_owner_id']
+                )
+                property_request.save()
+                # create a new pending property for the gov inspector to confirm
+                property = Properties(
+                    citizen = request.user.citizen,
+                    property_id = data['property_id'],
+                    size = data['size'],
+                    location = data['location'],
+                    property_type = data['property_type'],
+                    description = data['description'],
+                    picture = data['picture'],
+                    is_under_transfer = True
+                )
+                property.save()
             except Exception as e:
                 return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             return Response({"message": "The proccess is successful and the request is pending."}, status=status.HTTP_200_OK)

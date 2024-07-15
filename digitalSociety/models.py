@@ -6,12 +6,12 @@ def profile_picture_path(instance, filename):
 
 class Citizens(models.Model):
     # map the citizen to the User model provided by Django
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='citizen') # null=True
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='citizen', null=True) # null=True
     national_id = models.CharField(max_length=30, primary_key=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     date_of_birth = models.DateField()
-    picture = models.ImageField(upload_to=profile_picture_path, default='default.png')
+    picture = models.ImageField(upload_to=profile_picture_path, default='default.png', storage='django.core.files.storage.FileSystemStorage')
     # each one is written twice because the first one is the value and the second is what will appear in the dropdown menu
     SEX_CHOICES = [('M', 'Male'), ('F', 'Female')]
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
@@ -57,6 +57,9 @@ def proof_document_path(instance, filename):
 def license_path(instance, filename):
     return f'license_pictures/{instance.citizen.national_id}/{filename}'
 
+def property_path(instance, filename):
+    return f'property_pictures/{instance.property_id}/{filename}'
+
 class Passports(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
     passport_number = models.CharField(max_length=30, primary_key=True)
@@ -75,19 +78,46 @@ class DrivingLicenses(models.Model):
     CLASS_TYPES = [('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
     license_class = models.CharField(max_length=1, choices=CLASS_TYPES)
 
+class Properties(models.Model):
+    property_id = models.CharField(max_length=30) # this isn't the pk beacuse during the transfer process, there will be 2 instances of the property
+    citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
+    location = models.CharField(max_length=30)
+    PROPERTY_TYPES = [
+        ('Residential', 'Residential'), 
+        ('Commercial', 'Commercial'), 
+        ('Industrial', 'Industrial'), 
+        ('Agricultural', 'Agricultural'),
+        ('Land', 'Land'), 
+        ('Intellectual', 'Intellectual')
+    ]
+    property_type = models.CharField(max_length=30, choices=PROPERTY_TYPES)
+    description = models.TextField()
+    size = models.CharField(max_length=30, blank=True, null=True)
+    picture = models.ImageField(upload_to=property_path)
+    is_under_transfer = models.BooleanField(default=False)
+
 class RenewalRequests(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
+    REQUEST_TYPES = [('Passport', 'Passport'), ("Driver's License", "Driver's License")]
+    request_type = models.CharField(max_length=30, choices=REQUEST_TYPES)
+    picture = models.ImageField(upload_to=request_picture_path) # this is for the new doc
+    reason = models.TextField()
+    proof_document = models.FileField(upload_to=proof_document_path)
+    STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')] # TODO question the rejected option
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Pending")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+class RegistrationRequests(models.Model):
+    citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
     REQUEST_TYPES = [
-        ('Passport', 'Passport'), 
-        ("Driver's License", "Driver's License"), 
         ('Address Registration', 'Address Registration'),
         ('Property Registration', 'Property Registration'),
         ('Vehicle Registration', 'Vehicle Registration'),
     ]
     request_type = models.CharField(max_length=30, choices=REQUEST_TYPES)
-    picture = models.ImageField(upload_to=request_picture_path) # this is for the new doc
-    reason = models.TextField()
     proof_document = models.FileField(upload_to=proof_document_path)
+    previous_owner_id = models.CharField(max_length=30)
     STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')] # TODO question the rejected option
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Pending")
     submitted_at = models.DateTimeField(auto_now_add=True)

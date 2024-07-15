@@ -16,9 +16,12 @@ class DrivingLicensesAdmin(admin.ModelAdmin):
 class RenewalRequestsAdmin(admin.ModelAdmin):
     list_display = ('citizen', 'request_type', 'reason', 'proof_document', 'status', 'picture', 'submitted_at', 'reviewed_at')
 
+class RegistrationRequestsAdmin(admin.ModelAdmin):
+    list_display = ('citizen', 'request_type', 'proof_document', 'previous_owner_id', 'status', 'submitted_at', 'reviewed_at')
 
 admin.site.register(Citizens, CitizensAdmin)
 admin.site.register(Addresses, AddressesAdmin)
 admin.site.register(Passports, PassportsAdmin)
 admin.site.register(DrivingLicenses, DrivingLicensesAdmin)
 admin.site.register(RenewalRequests, RenewalRequestsAdmin)
+admin.site.register(RegistrationRequests, RegistrationRequestsAdmin)

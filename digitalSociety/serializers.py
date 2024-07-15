@@ -115,3 +115,22 @@ class AddressRegistrationSerializer(serializers.Serializer):
     floor_number = serializers.IntegerField()
     apartment_number = serializers.IntegerField()
     proof_document = serializers.FileField()
+
+'''This serializer will be used to collect the property information to be registered in the api view from the form'''
+class PropertyRegistrationSerializer(serializers.Serializer):
+    property_id = serializers.CharField(max_length=30)
+    previous_owner_id = serializers.CharField(max_length=30)
+    location = serializers.CharField(max_length=30)
+    PROPERTY_TYPES = [
+        ('Residential', 'Residential'), 
+        ('Commercial', 'Commercial'), 
+        ('Industrial', 'Industrial'), 
+        ('Agricultural', 'Agricultural'),
+        ('Land', 'Land'), 
+        ('Intellectual', 'Intellectual')
+    ]
+    property_type = serializers.ChoiceField(choices=PROPERTY_TYPES)
+    description = serializers.CharField()
+    size = serializers.CharField(max_length=30)
+    picture = serializers.ImageField()
+    proof_document = serializers.FileField()
