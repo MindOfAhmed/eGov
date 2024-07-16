@@ -13,6 +13,12 @@ class PassportsAdmin(admin.ModelAdmin):
 class DrivingLicensesAdmin(admin.ModelAdmin):
     list_display = ('license_number', 'citizen', 'picture', 'issue_date', 'expiry_date', 'nationality', 'emergency_contact', 'license_class')
 
+class PropertiesAdmin(admin.ModelAdmin):
+    list_display = ('property_id', 'citizen', 'location', 'size', 'property_type', 'description', 'picture', 'is_under_transfer')
+
+class VehiclesAdmin(admin.ModelAdmin):
+    list_display = ('serial_number', 'citizen', 'model', 'year', 'manufacturer', 'vehicle_type', 'plate_number', 'picture', 'is_under_transfer')
+
 class RenewalRequestsAdmin(admin.ModelAdmin):
     list_display = ('citizen', 'request_type', 'reason', 'proof_document', 'status', 'picture', 'submitted_at', 'reviewed_at')
 
@@ -23,5 +29,7 @@ admin.site.register(Citizens, CitizensAdmin)
 admin.site.register(Addresses, AddressesAdmin)
 admin.site.register(Passports, PassportsAdmin)
 admin.site.register(DrivingLicenses, DrivingLicensesAdmin)
+admin.site.register(Properties, PropertiesAdmin)
+admin.site.register(Vehicles, VehiclesAdmin)
 admin.site.register(RenewalRequests, RenewalRequestsAdmin)
 admin.site.register(RegistrationRequests, RegistrationRequestsAdmin)

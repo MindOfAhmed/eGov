@@ -119,7 +119,6 @@ class AddressRegistrationSerializer(serializers.Serializer):
 '''This serializer will be used to collect the property information to be registered in the api view from the form'''
 class PropertyRegistrationSerializer(serializers.Serializer):
     property_id = serializers.CharField(max_length=30)
-    previous_owner_id = serializers.CharField(max_length=30)
     location = serializers.CharField(max_length=30)
     PROPERTY_TYPES = [
         ('Residential', 'Residential'), 
@@ -133,4 +132,28 @@ class PropertyRegistrationSerializer(serializers.Serializer):
     description = serializers.CharField()
     size = serializers.CharField(max_length=30)
     picture = serializers.ImageField()
+    # the following fields will be used for the registration request
+    previous_owner_id = serializers.CharField(max_length=30)
     proof_document = serializers.FileField()
+
+'''This serializer will be used to collect the vehicle information to be registered in the api view from the form'''
+class VehicleRegistrationSerializer(serializers.Serializer):
+    serial_number = serializers.IntegerField()
+    model = serializers.CharField(max_length=30)
+    manufacturer = serializers.CharField(max_length=30)
+    year = serializers.IntegerField()
+    VEHICLE_TYPES = [
+        ('SUV', 'SUV'),
+        ('Sedan', 'Sedan'), 
+        ('Truck', 'Truck'), 
+        ('Van', 'Van'), 
+        ('Bus', 'Bus'),
+        ('Sports Car', 'Sports Car'),
+        ('Motorcycle', 'Motorcycle')
+    ]
+    vehicle_type = serializers.ChoiceField(choices=VEHICLE_TYPES)
+    picture = serializers.ImageField()
+    plate_number = serializers.CharField(max_length=30)
+    # the following fields will be used for the registration request
+    proof_document = serializers.FileField()
+    previous_owner_id = serializers.CharField(max_length=30)

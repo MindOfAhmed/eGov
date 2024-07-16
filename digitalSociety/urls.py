@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/license_info_validation/", views.license_info_validation, name="license_info_validation"),
     path("api/register_address/", views.register_address, name="register_address"),
     path("api/register_property/", views.register_property, name="register_property"),
+    path("api/register_vehicle/", views.register_vehicle, name="register_vehicle"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path('api/user/', views.user_data, name='user_data'),

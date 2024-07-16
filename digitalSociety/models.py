@@ -11,7 +11,7 @@ class Citizens(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     date_of_birth = models.DateField()
-    picture = models.ImageField(upload_to=profile_picture_path, default='default.png', storage='django.core.files.storage.FileSystemStorage')
+    picture = models.ImageField(upload_to=profile_picture_path, default='default.png')
     # each one is written twice because the first one is the value and the second is what will appear in the dropdown menu
     SEX_CHOICES = [('M', 'Male'), ('F', 'Female')]
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
@@ -60,6 +60,9 @@ def license_path(instance, filename):
 def property_path(instance, filename):
     return f'property_pictures/{instance.property_id}/{filename}'
 
+def vehicle_path(instance, filename):
+    return f'vehicle_pictures/{instance.serial_number}/{filename}'
+
 class Passports(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
     passport_number = models.CharField(max_length=30, primary_key=True)
@@ -94,6 +97,26 @@ class Properties(models.Model):
     description = models.TextField()
     size = models.CharField(max_length=30, blank=True, null=True)
     picture = models.ImageField(upload_to=property_path)
+    is_under_transfer = models.BooleanField(default=False)
+
+class Vehicles(models.Model):
+    serial_number = models.IntegerField()
+    citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
+    model = models.CharField(max_length=30)
+    manufacturer = models.CharField(max_length=30)
+    year = models.IntegerField()
+    VEHICLE_TYPES = [
+        ('SUV', 'SUV'),
+        ('Sedan', 'Sedan'), 
+        ('Truck', 'Truck'), 
+        ('Van', 'Van'), 
+        ('Bus', 'Bus'),
+        ('Sports Car', 'Sports Car'),
+        ('Motorcycle', 'Motorcycle')
+    ]
+    vehicle_type = models.CharField(max_length=30, choices=VEHICLE_TYPES)
+    picture = models.ImageField(upload_to=vehicle_path)
+    plate_number = models.CharField(max_length=30)
     is_under_transfer = models.BooleanField(default=False)
 
 class RenewalRequests(models.Model):
