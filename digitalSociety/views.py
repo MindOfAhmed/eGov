@@ -1,14 +1,32 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from datetime import datetime, timedelta
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.auth.models import Group
 from rest_framework import status
 from .serializers import *
 from .models import *
 from .services import *
+from django.contrib.auth.decorators import user_passes_test 
 
 # TODO check error handling when creating models
+
+'''This function uses the user_passes_test decorator to restrict view access based on user groups'''
+def group_required(group_name):
+    def in_group(u):
+        return u.is_authenticated and u.groups.filter(name=group_name).exists()
+    return user_passes_test(in_group)
+
+'''This view will return a list of groups the user is in'''
+@api_view(['GET']) # only allow GET requests
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+def user_groups(request):
+    if request.user.is_authenticated:
+        groups = request.user.groups.values_list('name', flat=True)
+        return Response({"groups" : list(groups)})
+    else:
+        return Response({"detail": "Not authenticated"})
 
 '''This function will be used to send the user data to the frontend'''
 @api_view(['GET']) # only allow GET requests
@@ -25,16 +43,18 @@ def index(request):
 '''This function will be used to validate the citizen's personal information from the form'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def citizen_info_validation(request):
     # create a serializer instance and pass the data from the request
     serializer = CitizenValidationSerializer(data=request.data)
     if serializer.is_valid():
         return Response({"message": "The data you entered matches our records."}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "The data you entered does not match our records", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 '''This function will be used to validate the citizen's address information from the form'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def address_info_validation(request):
     # create a serializer instance and pass the data from the request
     serializer = AddressValidationSerializer(data=request.data)
@@ -63,6 +83,7 @@ def address_info_validation(request):
 '''This function will be used to validate the passport information from the form and to create a new renewal request'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def passport_info_validation(request):
     # create a serializer instance and pass the data from the request
     serializer = PassportValidationSerializer(data=request.data)
@@ -118,6 +139,7 @@ def passport_info_validation(request):
 '''This function will be used to validate the driver's license information from the form and to create a new renewal request'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def license_info_validation(request):
     # create a serializer instance and pass the data from the request
     serializer = DrivingLicenseSerializer(data=request.data)
@@ -179,6 +201,7 @@ def license_info_validation(request):
 '''This function will be used to register a new address'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def register_address(request):
     # create a new serializer instance and pass the data from the request
     serializer = AddressRegistrationSerializer(data=request.data)
@@ -229,6 +252,7 @@ def register_address(request):
 '''This function will be used to register a new property'''    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def register_property(request):
     # create a new serializer instance and pass the data from the request
     serializer = PropertyRegistrationSerializer(data=request.data)
@@ -272,6 +296,7 @@ def register_property(request):
 '''This function will be used to register a new vehicle'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Citizens') # only citizens can access this view
 def register_vehicle(request):
     # create a new serializer instance and pass the data from the request
     serializer = VehicleRegistrationSerializer(data=request.data)

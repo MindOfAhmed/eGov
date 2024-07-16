@@ -16,7 +16,8 @@ urlpatterns = [
     path("api/register_vehicle/", views.register_vehicle, name="register_vehicle"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path('api/user/', views.user_data, name='user_data'),
+    path("api/user/", views.user_data, name="user_data"),
+    path("api/user_groups/", views.user_groups, name="user_groups")
 ]
 ''' 
     When a POST request is made to /token/ with valid user credentials (username and password),
