@@ -157,3 +157,65 @@ class VehicleRegistrationSerializer(serializers.Serializer):
     # the following fields will be used for the registration request
     proof_document = serializers.FileField()
     previous_owner_id = serializers.CharField(max_length=30)
+
+'''The following 2 serializers will be used to add the passport and driving license to the renewal requests serializer as related fields'''
+class PassportsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Passports
+        fields = '__all__'
+
+class DrivingLicenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrivingLicenses
+        fields = '__all__'
+# copilot ^_^
+
+'''
+These serializers will be used as a related field in the renewal requests serializer. 
+Only the field needed in the request will be included.
+'''
+class CitizenPassportInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Citizens
+        fields = ['national_id', 'first_name', 'last_name', 'date_of_birth', 'sex']
+
+class CitizenDrivingLicenseInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Citizens
+        fields = ['national_id', 'first_name', 'last_name', 'blood_type']
+
+'''This serializer will be used to send the renewal requests to the frontend'''
+class RenewalRequestsSerializer(serializers.ModelSerializer):
+    # these fields will contain the doc information and the appropriate citizen info
+    passport_info = PassportsSerializer(source="citizen.passports_set", many=True, read_only=True)
+    license_info = DrivingLicenseSerializer(source="citizen.drivinglicenses_set", many=True, read_only=True)
+    citizen_passport_info = CitizenPassportInfoSerializer(source="citizen", read_only=True)
+    citizen_license_info = CitizenDrivingLicenseInfoSerializer(source="citizen", read_only=True)
+
+    class Meta:
+        model = RenewalRequests
+        fields = '__all__'
+
+    '''
+    Only include the passport info if the request type is passport and the license info if the request type 
+    is license. The citizen information is also adjusted based on request type. This avoids the redundant data in the response
+    '''
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.request_type == 'Passport':
+            # move the info fields from their original location to the top level of the representation dictionary
+            representation['passport_info'] = representation.pop('passport_info', None)
+            representation['citizen_info'] = representation.pop('citizen_passport_info', None)
+             # remove the unnecessary fields
+            representation.pop('license_info', None)
+            representation.pop('citizen_license_info', None)
+        elif instance.request_type == "Driver's License":
+            # move the info fields from their original location to the top level of the representation dictionary
+            representation['license_info'] = representation.pop('license_info', None)
+            representation['citizen_info'] = representation.pop('citizen_license_info', None)
+             # remove the unnecessary fields
+            representation.pop('passport_info', None)
+            representation.pop('citizen_passport_info', None)
+        return representation
+
+# copilot ^_^ helped refactor the code to avoid redundant data in the response

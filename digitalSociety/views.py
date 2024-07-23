@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth.models import Group
 from rest_framework import status
 from .serializers import *
 from .models import *
 from .services import *
 from django.contrib.auth.decorators import user_passes_test 
+from rest_framework import generics
 
 # TODO check error handling when creating models
 
@@ -337,3 +337,31 @@ def register_vehicle(request):
             return Response({"message": "You already have a pending request."}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+'''This function will be used to retrieve the pending renewal requests that will be displayed to the inspector'''
+class RenewalRequestsAPIView(generics.ListAPIView):
+    serializer_class = RenewalRequestsSerializer
+    queryset = RenewalRequests.objects.filter(status='Pending')
+
+'''This view will accept the renewal requests'''
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated]) # only authenticated users can access this view
+# @group_required('Inspectors') # only inspectors can access this view
+# def accept_renewal_request(request):
+#     # create a new renewal request serializer instance and pass the data from the request
+#     serializer = RenewalRequestsSerializer(data=request.data)
+#     if serializer.is_valid():
+#         # retrieve the data from the serializer
+#         data = serializer.validated_data
+#         # retrieve the renewal request
+#         try:
+#             renewal_request = RenewalRequests.objects.get(id=data['id'])
+#             print(renewal_request)
+#             # update the renewal request status
+#             # renewal_request.status = 'Approved'
+#             # renewal_request.save()
+#             return Response({"message": "The request has been accepted."}, status=status.HTTP_200_OK)
+#         except RenewalRequests.DoesNotExist: 
+#             return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        

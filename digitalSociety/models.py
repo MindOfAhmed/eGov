@@ -76,7 +76,7 @@ class DrivingLicenses(models.Model):
     picture = models.ImageField(upload_to=license_path)
     issue_date = models.DateField()
     expiry_date = models.DateField()
-    nationality = models.CharField(max_length=30)
+    nationality = models.CharField(max_length=30, default='X')
     emergency_contact = models.CharField(max_length=30)
     CLASS_TYPES = [('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
     license_class = models.CharField(max_length=1, choices=CLASS_TYPES)
