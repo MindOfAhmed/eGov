@@ -119,6 +119,10 @@ class Vehicles(models.Model):
     plate_number = models.CharField(max_length=30)
     is_under_transfer = models.BooleanField(default=False)
 
+class Notifications(models.Model):
+    citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
+    message = models.TextField()
+
 class RenewalRequests(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
     REQUEST_TYPES = [('Passport', 'Passport'), ("Driver's License", "Driver's License")]
@@ -126,10 +130,11 @@ class RenewalRequests(models.Model):
     picture = models.ImageField(upload_to=request_picture_path) # this is for the new doc
     reason = models.TextField()
     proof_document = models.FileField(upload_to=proof_document_path)
-    STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')] # TODO question the rejected option
+    STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')] 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Pending")
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(null=True, blank=True, default="not rejected")
 
 class RegistrationRequests(models.Model):
     citizen = models.ForeignKey(Citizens, on_delete=models.CASCADE)
@@ -141,7 +146,8 @@ class RegistrationRequests(models.Model):
     request_type = models.CharField(max_length=30, choices=REQUEST_TYPES)
     proof_document = models.FileField(upload_to=proof_document_path)
     previous_owner_id = models.CharField(max_length=30)
-    STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')] # TODO question the rejected option
+    STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')]
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Pending")
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(null=True, blank=True, default="not rejected")

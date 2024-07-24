@@ -19,11 +19,14 @@ class PropertiesAdmin(admin.ModelAdmin):
 class VehiclesAdmin(admin.ModelAdmin):
     list_display = ('serial_number', 'citizen', 'model', 'year', 'manufacturer', 'vehicle_type', 'plate_number', 'picture', 'is_under_transfer')
 
+class NotificationsAdmin(admin.ModelAdmin):
+    list_display = ('citizen', 'message')
+
 class RenewalRequestsAdmin(admin.ModelAdmin):
-    list_display = ('citizen', 'request_type', 'reason', 'proof_document', 'status', 'picture', 'submitted_at', 'reviewed_at')
+    list_display = ('citizen', 'request_type', 'reason', 'proof_document', 'status', 'picture', 'submitted_at', 'reviewed_at', 'rejection_reason')
 
 class RegistrationRequestsAdmin(admin.ModelAdmin):
-    list_display = ('citizen', 'request_type', 'proof_document', 'previous_owner_id', 'status', 'submitted_at', 'reviewed_at')
+    list_display = ('citizen', 'request_type', 'proof_document', 'previous_owner_id', 'status', 'submitted_at', 'reviewed_at', 'rejection_reason')
 
 admin.site.register(Citizens, CitizensAdmin)
 admin.site.register(Addresses, AddressesAdmin)
@@ -31,5 +34,6 @@ admin.site.register(Passports, PassportsAdmin)
 admin.site.register(DrivingLicenses, DrivingLicensesAdmin)
 admin.site.register(Properties, PropertiesAdmin)
 admin.site.register(Vehicles, VehiclesAdmin)
+admin.site.register(Notifications, NotificationsAdmin)
 admin.site.register(RenewalRequests, RenewalRequestsAdmin)
 admin.site.register(RegistrationRequests, RegistrationRequestsAdmin)

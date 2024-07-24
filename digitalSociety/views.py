@@ -344,24 +344,71 @@ class RenewalRequestsAPIView(generics.ListAPIView):
     queryset = RenewalRequests.objects.filter(status='Pending')
 
 '''This view will accept the renewal requests'''
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated]) # only authenticated users can access this view
-# @group_required('Inspectors') # only inspectors can access this view
-# def accept_renewal_request(request):
-#     # create a new renewal request serializer instance and pass the data from the request
-#     serializer = RenewalRequestsSerializer(data=request.data)
-#     if serializer.is_valid():
-#         # retrieve the data from the serializer
-#         data = serializer.validated_data
-#         # retrieve the renewal request
-#         try:
-#             renewal_request = RenewalRequests.objects.get(id=data['id'])
-#             print(renewal_request)
-#             # update the renewal request status
-#             # renewal_request.status = 'Approved'
-#             # renewal_request.save()
-#             return Response({"message": "The request has been accepted."}, status=status.HTTP_200_OK)
-#         except RenewalRequests.DoesNotExist: 
-#             return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Inspectors') # only inspectors can access this view
+def accept_renewal_request(request, id):
+    try:
+        # retrieve the renewal request
+        renewal_request = RenewalRequests.objects.get(id=id)
+        today = datetime.now().date()
+        
+        # update the passport information
+        if (renewal_request.request_type == 'Passport'):
+            # retrieve the associated passport
+            passport = Passports.objects.get(citizen=renewal_request.citizen)
+            # set the new passport picture to the uploaded picture
+            passport.picture = renewal_request.picture
+            # update the issue and expiry dates
+            passport.issue_date = today
+            passport.expiry_date = today + timedelta(days=365*5)
+            passport.save()
+        else: # driver's license
+            # retrieve the associated driver's license
+            license = DrivingLicenses.objects.get(citizen=renewal_request.citizen)
+            # set the new license picture to the uploaded picture
+            license.picture = renewal_request.picture
+            # update the issue and expiry dates
+            license.issue_date = today
+            license.expiry_date = today + timedelta(days=365*10)
+            license.save()
+
+        # update the renewal request status
+        renewal_request.status = 'Approved'
+        renewal_request.reviewed_at = today
+        renewal_request.save()
+
+        # send a notification to the citizen
+        message = f"Your {renewal_request.request_type} renewal request has been approved."
+        Notifications.objects.create(citizen=renewal_request.citizen, message=message)
+    except RenewalRequests.DoesNotExist:
+        return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "The request has been accepted."}, status=status.HTTP_200_OK)
+
+'''This view will reject the renewal requests'''
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Inspectors') # only inspectors can access this view
+def reject_renewal_request(request, id):
+    try:
+        # retrieve the renewal request
+        renewal_request=RenewalRequests.objects.get(id=id)
+
+        # update the renewal request status
+        renewal_request.status = 'Rejected'
+        renewal_request.reviewed_at = datetime.now().date()
+
+        # retrieve the rejection reason from the request and set it in the renewal request
+        rejection_reason = request.data.get('rejectionReason', '') # copilot ^_^
+        renewal_request.rejection_reason = rejection_reason
+        renewal_request.save()
+
+        # send a notification to the citizen
+        message = f"Your {renewal_request.request_type} renewal request has been rejected. Reason: {rejection_reason}"
+        Notifications.objects.create(citizen=renewal_request.citizen, message=message)
+    except RenewalRequests.DoesNotExist:
+        return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "The request has successfuly been rejected."}, status=status.HTTP_200_OK)
+    
+    
         
