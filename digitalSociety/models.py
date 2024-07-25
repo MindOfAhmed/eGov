@@ -145,7 +145,7 @@ class RegistrationRequests(models.Model):
     ]
     request_type = models.CharField(max_length=30, choices=REQUEST_TYPES)
     proof_document = models.FileField(upload_to=proof_document_path)
-    previous_owner_id = models.CharField(max_length=30)
+    previous_owner_id = models.CharField(max_length=30, null=True, blank=True) # null and blank becasue of the address registration
     STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')]
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="Pending")
     submitted_at = models.DateTimeField(auto_now_add=True)

@@ -19,7 +19,8 @@ urlpatterns = [
     path("api/accept_renewal_request/<int:id>/", views.accept_renewal_request, name="accept_renewal_request"),
     path("api/reject_renewal_request/<int:id>/", views.reject_renewal_request, name="reject_renewal_request"),
     path("api/registration_requests/", RegistrationRequestsAPIView.as_view(), name="registration_request"),
-    
+    path("api/accept_registration_request/<int:id>/", views.accept_registration_request, name="accept_registration_request"),
+    path("api/reject_registration_request/<int:id>/", views.reject_registration_request, name="reject_registration_request"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/user/", views.user_data, name="user_data"),

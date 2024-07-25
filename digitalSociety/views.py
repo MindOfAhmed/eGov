@@ -415,3 +415,91 @@ class RegistrationRequestsAPIView(generics.ListAPIView):
     serializer_class = RegistrationRequestsSerializer
     queryset = RegistrationRequests.objects.filter(status='Pending')
         
+'''This view will accept the registration requests'''
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Inspectors') # only inspectors can access this view
+def accept_registration_request(request, id):
+    try:
+        # retrieve the registration request
+        registration_request = RegistrationRequests.objects.get(id=id)
+
+        # update the registration request status to Approved
+        registration_request.status = 'Approved'
+        registration_request.reviewed_at = datetime.now().date()
+        registration_request.save()
+
+        # send a notification to the citizen
+        message = f"Your {registration_request.request_type} registration request has been approved."
+        Notifications.objects.create(citizen=registration_request.citizen, message=message)
+
+        # update the placeholder data in the database
+        if registration_request.request_type == 'Address Registration':
+            # retrive the placeholder address and update its state
+            address = Addresses.objects.get(citizen=registration_request.citizen, state='Pending Request')
+            address.state = 'Active'
+            address.save()
+        elif registration_request.request_type == 'Property Registration':
+            # transfer the property to the new owner
+            property = Properties.objects.get(citizen=registration_request.citizen, is_under_transfer=True)
+            property.is_under_transfer = False
+            property.save()
+            # retrieve the property registered under the former owner delete it
+            try:
+                prev_registration = Properties.objects.get(citizen=registration_request.previous_owner_id, property_id=property.property_id)
+                prev_registration.delete()
+            except Properties.DoesNotExist:
+                pass
+        else:
+            # transfer the vehicle to the new owner
+            vehicle = Vehicles.objects.get(citizen=registration_request.citizen, is_under_transfer=True)
+            vehicle.is_under_transfer = False
+            vehicle.save()
+            # retrieve the vehicle registered under the former owner delete it
+            try:
+                prev_registration = Vehicles.objects.get(citizen=registration_request.previous_owner_id, serial_number=vehicle.serial_number)
+                prev_registration.delete()
+            except Vehicles.DoesNotExist:
+                pass
+        
+        return Response({"message": "The registration request has been accepted successfully."}, status=status.HTTP_200_OK)
+    except RegistrationRequests.DoesNotExist:
+        return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+'''This view will reject the registration requests'''
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # only authenticated users can access this view
+@group_required('Inspectors') # only inspectors can access this view
+def reject_registration_request(request, id):
+    try:
+        # retrieve the registration request
+        registration_request = RegistrationRequests.objects.get(id=id)
+
+        # update the registration request status to rejected
+        registration_request.status = 'Rejected'
+        registration_request.reviewed_at = datetime.now().date()
+
+        # retrieve the rejection reason from the request and set it in the registration request
+        rejection_reason = request.data.get('rejectionReason', '')
+        registration_request.rejection_reason = rejection_reason
+
+        registration_request.save()
+
+        # send a notification to the citizen
+        message = f"Your {registration_request.request_type} registration request has been rejected. Reason: {rejection_reason}"
+        Notifications.objects.create(citizen=registration_request.citizen, message=message)
+
+        # delete the placeholder data from the database
+        if registration_request.request_type == 'Address Registration':
+            address = Addresses.objects.get(citizen=registration_request.citizen, state='Pending Request')
+            address.delete()
+        elif registration_request.request_type == 'Property Registration':
+            property = Properties.objects.get(citizen=registration_request.citizen, is_under_transfer=True)
+            property.delete()
+        else:
+            vehicle = Vehicles.objects.get(citizen=registration_request.citizen, is_under_transfer=True)
+            vehicle.delete()
+        
+        return Response({"message": "The registration request has been rejected successfully."}, status=status.HTTP_200_OK)
+    except RegistrationRequests.DoesNotExist:
+        return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
