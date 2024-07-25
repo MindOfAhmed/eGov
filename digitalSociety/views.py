@@ -352,7 +352,7 @@ def accept_renewal_request(request, id):
         # retrieve the renewal request
         renewal_request = RenewalRequests.objects.get(id=id)
         today = datetime.now().date()
-        
+
         # update the passport information
         if (renewal_request.request_type == 'Passport'):
             # retrieve the associated passport
@@ -410,5 +410,8 @@ def reject_renewal_request(request, id):
         return Response({"message": "The request does not exist."}, status=status.HTTP_400_BAD_REQUEST)
     return Response({"message": "The request has successfuly been rejected."}, status=status.HTTP_200_OK)
     
-    
+'''This function will be used to retrieve the pending registration requests that will be displayed to the inspector'''
+class RegistrationRequestsAPIView(generics.ListAPIView):
+    serializer_class = RegistrationRequestsSerializer
+    queryset = RegistrationRequests.objects.filter(status='Pending')
         

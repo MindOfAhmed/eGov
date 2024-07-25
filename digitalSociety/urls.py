@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import RenewalRequestsAPIView
+from .views import RenewalRequestsAPIView, RegistrationRequestsAPIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -18,6 +18,8 @@ urlpatterns = [
     path("api/renewal_requests/", RenewalRequestsAPIView.as_view(), name="renewal_request"),
     path("api/accept_renewal_request/<int:id>/", views.accept_renewal_request, name="accept_renewal_request"),
     path("api/reject_renewal_request/<int:id>/", views.reject_renewal_request, name="reject_renewal_request"),
+    path("api/registration_requests/", RegistrationRequestsAPIView.as_view(), name="registration_request"),
+    
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/user/", views.user_data, name="user_data"),

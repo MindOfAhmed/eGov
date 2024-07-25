@@ -174,11 +174,13 @@ class DrivingLicenseSerializer(serializers.ModelSerializer):
 These serializers will be used as a related field in the renewal requests serializer. 
 Only the field needed in the request will be included.
 '''
-class CitizenPassportInfoSerializer(serializers.ModelSerializer):
+# this will be the general citizen info that will be used in renewal and registration requests
+class CitizenInfoSerializer(serializers.ModelSerializer): 
     class Meta:
         model = Citizens
         fields = ['national_id', 'first_name', 'last_name', 'date_of_birth', 'sex']
 
+# this is specific to the driver's licence
 class CitizenDrivingLicenseInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Citizens
@@ -189,7 +191,7 @@ class RenewalRequestsSerializer(serializers.ModelSerializer):
     # these fields will contain the doc information and the appropriate citizen info
     passport_info = PassportsSerializer(source="citizen.passports_set", many=True, read_only=True)
     license_info = DrivingLicenseSerializer(source="citizen.drivinglicenses_set", many=True, read_only=True)
-    citizen_passport_info = CitizenPassportInfoSerializer(source="citizen", read_only=True)
+    citizen_passport_info = CitizenInfoSerializer(source="citizen", read_only=True)
     citizen_license_info = CitizenDrivingLicenseInfoSerializer(source="citizen", read_only=True)
 
     class Meta:
@@ -219,3 +221,81 @@ class RenewalRequestsSerializer(serializers.ModelSerializer):
         return representation
 
 # copilot ^_^ helped refactor the code to avoid redundant data in the response
+
+'''This serialzier will be used to include the address data as a related field in the registration requests serializer'''
+class AddressesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Addresses
+        fields = '__all__'
+
+'''This serialzier will be used to include the property data as a related field in the registration requests serializer'''
+class PropertiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Properties
+        fields = '__all__'
+
+'''This serialzier will be used to include the vehicle data as a related field in the registration requests serializer'''
+class VehiclesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicles
+        fields = '__all__'
+
+'''This serializer will be used to send the registration requests to the frontend'''
+class RegistrationRequestsSerializer(serializers.ModelSerializer):
+    '''SerializerMethodField allows the defining of a method in the serializer that will be used to calculate the value for the field'''
+    # related method fields
+    address_info = serializers.SerializerMethodField()
+    property_info = serializers.SerializerMethodField()
+    vehicle_info = serializers.SerializerMethodField()
+    # the related citizen field 
+    citizen_info = CitizenInfoSerializer(source="citizen", read_only=True)
+
+    class Meta:
+        model = RegistrationRequests
+        fields = '__all__'
+
+    # define custom methods for filtering related fields so that only the pending documents are included in the response
+    def get_address_info(self, obj):
+        try:
+            pending_address = obj.citizen.addresses_set.get(state='Pending Request')
+            return AddressesSerializer(pending_address).data
+        except Addresses.DoesNotExist:
+            return None
+
+    def get_property_info(self, obj):
+        try:
+            property_under_transfer = obj.citizen.properties_set.get(is_under_transfer=True)
+            return PropertiesSerializer(property_under_transfer).data
+        except Properties.DoesNotExist:
+            return None
+    
+    def get_vehicle_info(self, obj):
+        try:
+            vehicle_under_transfer = obj.citizen.vehicles_set.get(is_under_transfer=True)
+            return VehiclesSerializer(vehicle_under_transfer).data
+        except Vehicles.DoesNotExist:
+            return None
+    # copilot ^_^ 
+
+    # only include the document info in the if the request type is of that document type.
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.request_type == 'Address Registration':
+            # move the info field from their original location to the top level of the representation dictionary
+            representation['address_info'] = representation.pop('address_info', None)
+             # remove the unnecessary fields
+            representation.pop('property_info', None)
+            representation.pop('vehicle_info', None)
+        elif instance.request_type == "Property Registration":
+            # move the info field from their original location to the top level of the representation dictionary
+            representation['property_info'] = representation.pop('property_info', None)
+             # remove the unnecessary fields
+            representation.pop('address_info', None)
+            representation.pop('vehicle_info', None)
+        elif instance.request_type == "Vehicle Registration":
+            # move the info field from their original location to the top level of the representation dictionary
+            representation['vehicle_info'] = representation.pop('vehicle_info', None)
+             # remove the unnecessary fields
+            representation.pop('address_info', None)
+            representation.pop('property_info', None)
+        return representation
